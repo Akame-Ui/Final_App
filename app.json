@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "QRTT_APP",
+    "slug": "QRTT_APP",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon2.png",
+    "scheme": "qrttapp",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "icon": "./assets/images/icon2.png"
+    },
+    "android": {
+      "package": "com.anonymous.QRTT_APP",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#041420",
+        "foregroundImage": "./assets/images/icon2.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/icon2.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow QRTT to scan event QR codes."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#041420",
+          "image": "./assets/images/icon2.png",
+          "imageWidth": 180
+        }
+      ],
+      "@react-native-community/datetimepicker"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
