@@ -111,7 +111,7 @@ export default function TeacherScreen() {
         setPayload(null);
         return;
       }
-      setMessage('Event saved! Scan the QR with the Scan tab to test it.');
+      setMessage('Event saved! QR is a universal https:// link — scannable by iPhone Camera, Android, or any QR app, plus the in-app Scan tab.');
       setPayload(buildQRPayload(event));
     } catch {
       setMessage('Could not save the event. Please try again.');
@@ -162,9 +162,10 @@ export default function TeacherScreen() {
       {message && <Text style={styles.message}>{message}</Text>}
       {payload && (
         <View style={styles.resultCard}>
-          <Text style={styles.resultTitle}>Scan this QR with the Scan tab</Text>
-          <View style={styles.qrBox}><QRCode value={payload} size={200} /></View>
-          <Text style={styles.payloadText}>{payload}</Text>
+          <Text style={styles.resultTitle}>Universal QR — scan with any camera</Text>
+          <Text style={styles.resultSubtitle}>iPhone Camera, Android Lens, or the app&apos;s Scan tab. Link opens /attend in browser or app.</Text>
+          <View style={styles.qrBox}><QRCode value={payload} size={220} /></View>
+          <Text style={styles.payloadText} selectable>{payload}</Text>
         </View>
       )}
     </ScrollView>
@@ -202,6 +203,7 @@ const styles = StyleSheet.create({
   message: { color: COLORS.textPrimary, textAlign: 'center', marginTop: 16, fontSize: 14 },
   resultCard: { alignItems: 'center', backgroundColor: COLORS.card, borderRadius: 16, padding: 22, marginTop: 24, gap: 14 },
   resultTitle: { color: COLORS.textPrimary, fontWeight: '700', textAlign: 'center' },
+  resultSubtitle: { color: COLORS.textSecondary, fontSize: 12, textAlign: 'center' },
   qrBox: { backgroundColor: '#FFFFFF', padding: 12, borderRadius: 8 },
   payloadText: { color: COLORS.textSecondary, fontSize: 10, textAlign: 'center' },
 });

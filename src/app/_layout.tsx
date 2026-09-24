@@ -1,5 +1,4 @@
-import { Redirect, Stack, useSegments } from 'expo-router';
-import type { RelativePathString } from 'expo-router';
+import { Stack } from 'expo-router';
 import * as Linking from 'expo-linking';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
@@ -12,8 +11,7 @@ import { useAuth } from '@/lib/auth';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { session, loading } = useAuth();
-  const segments = useSegments();
+  const { loading } = useAuth();
 
   useEffect(() => {
     void SplashScreen.hideAsync();
@@ -38,14 +36,8 @@ export default function RootLayout() {
     );
   }
 
-  const path = segments[0];
-  const inAuthGroup = path === 'login' || path === 'register';
-  const inTabsGroup = path === '(tabs)';
-
   return (
     <Stack initialRouteName="login" screenOptions={{ headerShown: false }}>
-      {!session && inTabsGroup && <Redirect href={'/login' as RelativePathString} />}
-      {session && inAuthGroup && <Redirect href={'/(tabs)' as RelativePathString} />}
       <Stack.Screen name="login" />
       <Stack.Screen name="register" />
       <Stack.Screen name="(tabs)" />

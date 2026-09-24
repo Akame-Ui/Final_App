@@ -6,6 +6,8 @@ import AppButton from '@/components/AppButton';
 import { COLORS } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
 import { registerAttendance } from '@/lib/attendance';
+import { parseQRPayload } from '@/lib/qr';
+import { saveScanHistory } from '@/lib/scanHistory';
 
 export default function ScanScreen() {
   const { user } = useAuth();
@@ -29,18 +31,37 @@ export default function ScanScreen() {
     );
   }
 
-  const handleBarcodeScanned = ({ data }: { data: string }) => {
+  const handleBarcodeScanned = async ({ data }: { data: string }) => {
     setScanned(true);
     setLastData(data);
-    registerAttendance(data, user?.id ?? 'unknown')
-      .then((result) => {
-        setMessage(result.message);
-        setSuccess(result.success);
-      })
-      .catch(() => {
-        setMessage('Could not connect to attendance service. Try again.');
-        setSuccess(false);
-      });
+    const uid = user?.id ?? 'anonymous';
+    const trimmed = data.trim();
+
+    // If it's NOT an attendance QR but still valid content (generic/others QR),
+    // treat as successful "Scan detected" and save directly to history
+    const parsed = parseQRPayload(trimmed);
+    const isGenericQR = !parsed.ok && trimmed.length > 0;
+
+    if (isGenericQR) {
+      const genericResult = { success: true, message: 'Scan detected — saved to history' };
+      setMessage(genericResult.message);
+      setSuccess(true);
+      await saveScanHistory(uid, data, genericResult);
+      return;
+    }
+
+    try {
+      const result = await registerAttendance(data, uid);
+      setMessage(result.message);
+      setSuccess(result.success);
+      // Save EVERY scan to history (attendance or generic QR) — so history.tsx shows all scans
+      await saveScanHistory(uid, data, result);
+    } catch {
+      const fallback = { success: false, message: 'Could not connect to attendance service. Try again.' };
+      setMessage(fallback.message);
+      setSuccess(false);
+      await saveScanHistory(uid, data, fallback);
+    }
   };
 
   const handleScanAgain = () => {
@@ -58,10 +79,12 @@ export default function ScanScreen() {
         onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
       />
       <View style={styles.overlay}>
-        <Text style={styles.overlayText}>{scanned ? 'QR code detected' : 'Scan an event QR code'}</Text>
-        <Text style={styles.helperText}>Point your camera at the event check-in code.</Text>
+        <Text style={styles.overlayText}>{scanned ? 'Scan detected' : 'Scan any QR code'}</Text>
+        <Text style={styles.helperText}>
+          {scanned ? (success ? 'Saved to Scan Detected history.' : 'Try again or check code.') : 'Attendance QR or any other QR — all saves to history.'}
+        </Text>
         {scanned && message && <Text style={[styles.scanResult, success ? styles.success : styles.error]}>{message}</Text>}
-        {scanned && lastData && <Text style={styles.scanData}>{lastData}</Text>}
+        {scanned && lastData && <Text style={styles.scanData} numberOfLines={3}>{lastData}</Text>}
         {scanned && <AppButton theme="primary" title="Scan again" icon="refresh" onPress={handleScanAgain} />}
       </View>
     </View>

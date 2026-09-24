@@ -39,10 +39,23 @@ returns trigger
 language plpgsql
 security definer set search_path = public
 as $$
+declare
+  meta_role text;
+  meta_name text;
 begin
-  insert into public.profiles (id, email)
-  values (new.id, coalesce(new.email, ''))
-  on conflict (id) do update set email = excluded.email, updated_at = now();
+  meta_role := coalesce(nullif(new.raw_user_meta_data->>'role', ''), 'student');
+  if meta_role not in ('student', 'teacher') then
+    meta_role := 'student';
+  end if;
+  meta_name := nullif(coalesce(new.raw_user_meta_data->>'full_name', ''), '');
+
+  insert into public.profiles (id, email, full_name, role)
+  values (new.id, coalesce(new.email, ''), meta_name, meta_role)
+  on conflict (id) do update set
+    email = excluded.email,
+    full_name = coalesce(excluded.full_name, public.profiles.full_name),
+    role = case when excluded.role <> 'student' then excluded.role else public.profiles.role end,
+    updated_at = now();
   return new;
 end;
 $$;
